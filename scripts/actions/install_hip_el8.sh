@@ -71,4 +71,4 @@ $USE_SUDO dnf clean all
 # Install packages.
 # Todo: Install as few as possible, this will be big and unversioned
 # Todo: install the versioned package name, in case multiple versions are available from the same rocm.repo
-$USE_SUDO dnf install -y rocm-hip-runtime-dev
+$USE_SUDO dnf install -y rocm-hip-runtime-devel
