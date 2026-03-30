@@ -46,6 +46,7 @@ $USE_SUDO mkdir --parents --mode=0755 /etc/apt/keyrings
 wget https://repo.radeon.com/rocm/rocm.gpg.key -O - | gpg --dearmor | $USE_SUDO tee /etc/apt/keyrings/rocm.gpg > /dev/null
 
 # register packages
+# Todo: This is where version selection would go (for 7.2 and 7.2.1 at least)
 $USE_SUDO tee /etc/apt/sources.list.d/rocm.list << EOF
 deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/7.2.1 noble main
 deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/graphics/7.2.1/ubuntu noble main
@@ -59,4 +60,5 @@ $USE_SUDO apt update
 
 # Install packages.
 # Todo: Install as few as possible, this will be big and unversioned
+# Todo: intall the versioned package name, in case multiple verisons are avaailable from the same rocm.list
 $USE_SUDO apt install -y rocm-hip-runtime-dev
