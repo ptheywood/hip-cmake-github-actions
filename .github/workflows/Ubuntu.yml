@@ -27,11 +27,11 @@ jobs:
 
     - uses: actions/checkout@v6
 
-    # - name: Install HIP
-    #   env:
-    #     cuda: ${{ matrix.hip }}
-    #   run: ./scripts/actions/install_hip_ubuntu.sh
-    #   shell: bash
+    - name: Install HIP
+      env:
+        cuda: ${{ matrix.hip }}
+      run: ./scripts/actions/install_hip_ubuntu.sh
+      shell: bash
 
     - name: Configure cmake
       id: configure
