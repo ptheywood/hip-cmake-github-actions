@@ -29,7 +29,7 @@ jobs:
 
     - name: Install HIP
       env:
-        cuda: ${{ matrix.hip }}
+        hip: ${{ matrix.hip }}
       run: ./scripts/actions/install_hip_ubuntu.sh
       shell: bash
 
