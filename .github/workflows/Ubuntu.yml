@@ -6,7 +6,7 @@ on:
       - "**"
       - "!.github/**"
       - ".github/workflows/Ubuntu.yml"
-      - "!scripts/"
+      - "!scripts/**"
       - "scripts/actions/install_hip_ubuntu.sh"
       - "!*.md"
 jobs:

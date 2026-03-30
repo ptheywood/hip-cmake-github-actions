@@ -6,7 +6,7 @@ on:
       - "**"
       - "!.github/**"
       - ".github/workflows/Manylinux_2_28.yml"
-      - "!scripts/"
+      - "!scripts/**"
       - "scripts/actions/install_hip_el8.sh"
       - "!*.md"
 jobs:
