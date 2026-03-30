@@ -7,6 +7,30 @@
 # Todo: Ubuntu version differences
 
 
+## -------------------
+## Bash functions
+## -------------------
+# returns 0 (true) if a >= b
+function version_ge() {
+    [ "$#" != "2" ] && echo "${FUNCNAME[0]} requires exactly 2 arguments." && exit 1
+    [ "$(printf '%s\n' "$@" | sort -V | head -n 1)" == "$2" ]
+}
+# returns 0 (true) if a > b
+function version_gt() {
+    [ "$#" != "2" ] && echo "${FUNCNAME[0]} requires exactly 2 arguments." && exit 1
+    [ "$1" = "$2" ] && return 1 || version_ge $1 $2
+}
+# returns 0 (true) if a <= b
+function version_le() {
+    [ "$#" != "2" ] && echo "${FUNCNAME[0]} requires exactly 2 arguments." && exit 1
+    [ "$(printf '%s\n' "$@" | sort -V | head -n 1)" == "$1" ]
+}
+# returns 0 (true) if a < b
+function version_lt() {
+    [ "$#" != "2" ] && echo "${FUNCNAME[0]} requires exactly 2 arguments." && exit 1
+    [ "$1" = "$2" ] && return 1 || version_le $1 $2
+}
+
 ## -----------------
 ## Check for root/sudo
 ## -----------------
@@ -31,6 +55,49 @@ else
     USE_SUDO=
 fi
 
+## ------------------
+## Select HIP version
+## ------------------
+
+# Get the hip version from the environment as $hip.
+HIP_VERSION_STR=${hip}
+
+# Split the version.
+# We (might/probably) don't know PATCH at this point - it depends which version gets installed.
+HIP_MAJOR=$(echo "${HIP_VERSION_STR}" | cut -d. -f1)
+HIP_MINOR=$(echo "${HIP_VERSION_STR}" | cut -d. -f2)
+HIP_PATCH=$(echo "${HIP_VERSION_STR}" | cut -d. -f3)
+# default patch to 0 if not provided
+HIP_PATCH=${HIP_PATCH:-0}
+# build a 3-part version string for package names
+HIP_MAJOR_MINOR_PATCH="${HIP_MAJOR}.${HIP_MINOR}.${HIP_PATCH}"
+# use lsb_release to find the OS.
+UBUNTU_NAME=$(lsb_release -sc)
+UBUNTU_VERSION=$(lsb_release -sr)
+UBUNTU_VERSION="${UBUNTU_VERSION//.}"
+
+
+echo "HIP_MAJOR: ${HIP_MAJOR}"
+echo "HIP_MINOR: ${HIP_MINOR}"
+echo "HIP_PATCH: ${HIP_PATCH}"
+echo "UBUNTU_NAME: ${UBUNTU_NAME}"
+echo "UBUNTU_VERSION: ${UBUNTU_VERSION}"
+
+# If we don't know the HIP_MAJOR or MINOR, error.
+if [ -z "${HIP_MAJOR}" ] ; then
+    echo "Error: Unknown CUDA Major version. Aborting."
+    exit 1
+fi
+if [ -z "${HIP_MINOR}" ] ; then
+    echo "Error: Unknown CUDA Minor version. Aborting."
+    exit 1
+fi
+# If we don't know the Ubuntu version, error.
+if [ -z ${UBUNTU_VERSION} ]; then
+    echo "Error: Unknown Ubuntu version. Aborting."
+    exit 1
+fi
+
 # enable command printing for CI debugging
 set -x
 
@@ -46,10 +113,9 @@ $USE_SUDO mkdir --parents --mode=0755 /etc/apt/keyrings
 wget https://repo.radeon.com/rocm/rocm.gpg.key -O - | gpg --dearmor | $USE_SUDO tee /etc/apt/keyrings/rocm.gpg > /dev/null
 
 # register packages
-# Todo: This is where version selection would go (for 7.2 and 7.2.1 at least)
 $USE_SUDO tee /etc/apt/sources.list.d/rocm.list << EOF
-deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/7.2.1 noble main
-deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/graphics/7.2.1/ubuntu noble main
+deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/${HIP_VERSION_STR} ${UBUNTU_NAME} main
+deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/graphics/${HIP_VERSION_STR}/ubuntu ${UBUNTU_NAME} main
 EOF
 $USE_SUDO tee /etc/apt/preferences.d/rocm-pin-600 << EOF
 Package: *
@@ -60,5 +126,5 @@ $USE_SUDO apt update
 
 # Install packages.
 # Todo: Install as few as possible, this will be big and unversioned
-# Todo: intall the versioned package name, in case multiple verisons are avaailable from the same rocm.list
-$USE_SUDO apt install -y rocm-hip-runtime-dev
+# Todo: install the versioned package name, in case multiple versions are available from the same rocm.list
+$USE_SUDO apt install -y rocm-hip-runtime-dev${HIP_MAJOR_MINOR_PATCH}

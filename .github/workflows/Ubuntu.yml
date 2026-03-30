@@ -19,6 +19,8 @@ jobs:
         include:
           - os: ubuntu-24.04
             hip: "7.2"
+          - os: ubuntu-24.04
+            hip: "7.0"
     env:
       build_dir: "build"
       config: "Release"
